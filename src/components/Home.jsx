@@ -3,12 +3,10 @@ import Loader from "./Loader";
 import { useAuth } from "./AuthContext";
 
 function Home() {
-  const { user, loading } = useAuth(); // ✅ context se user aur loading le liya
+  const { user, authLoading } = useAuth();
   const navigate = useNavigate();
 
-  if (loading) {
-    return <Loader />;
-  }
+  if (authLoading) return <Loader />;
 
   if (!user) {
     return (
@@ -32,8 +30,7 @@ function Home() {
       <div className="bg-white shadow-lg rounded-xl p-8 w-96 text-center">
         <h2 className="text-2xl font-bold mb-4">Welcome to My Blog</h2>
         <p className="mb-4 text-gray-600">
-          You are logged in as{" "}
-          <span className="font-semibold">{user.role}</span>.
+          You are logged in as <span className="font-semibold">{user.role}</span>.
         </p>
 
         {user.role === "reporter" ? (
@@ -57,3 +54,4 @@ function Home() {
 }
 
 export default Home;
+

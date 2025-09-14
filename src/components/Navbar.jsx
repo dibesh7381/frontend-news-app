@@ -4,22 +4,17 @@ import { useAuth } from "./AuthContext";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth(); // ✅ Context se user & logout function
+  const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleLogout = () => {
-    logout(); // ✅ context se logout karega (localStorage clear + state reset)
-    navigate("/");
+  const goTo = (path) => {
+    navigate(path);
     setIsOpen(false);
   };
 
-  const handleReporterClick = () => {
-    if (!user) {
-      navigate("/login");
-    } else {
-      navigate("/reporter");
-    }
-    setIsOpen(false);
+  const handleLogout = () => {
+    logout();
+    goTo("/");
   };
 
   return (
@@ -31,62 +26,38 @@ const Navbar = () => {
             {/* Logo */}
             <div
               className="text-xl font-bold cursor-pointer"
-              onClick={() => navigate("/")}
+              onClick={() => goTo("/")}
             >
               📰 NewsApp
             </div>
 
             {/* Desktop Menu */}
             <div className="hidden md:flex space-x-6 items-center">
-              <button
-                onClick={() => navigate("/news")}
-                className="hover:underline transition cursor-pointer"
-              >
+              <button onClick={() => goTo("/news")} className="hover:underline cursor-pointer">
                 All News
               </button>
 
-              {user && (
+              {user ? (
                 <>
-                  <button
-                    onClick={handleReporterClick}
-                    className="hover:underline transition cursor-pointer"
-                  >
+                  <button onClick={() => goTo("/reporter")} className="hover:underline cursor-pointer">
                     Reporter Page
                   </button>
-
-                  <button
-                    onClick={() => navigate("/profile")}
-                    className="hover:underline transition cursor-pointer"
-                  >
+                  <button onClick={() => goTo("/profile")} className="hover:underline cursor-pointer">
                     Profile
                   </button>
+                  <button onClick={handleLogout} className="hover:underline cursor-pointer">
+                    Logout
+                  </button>
                 </>
-              )}
-
-              {!user && (
+              ) : (
                 <>
-                  <button
-                    onClick={() => navigate("/login")}
-                    className="hover:underline transition cursor-pointer"
-                  >
+                  <button onClick={() => goTo("/login")} className="hover:underline cursor-pointer">
                     Login
                   </button>
-                  <button
-                    onClick={() => navigate("/signup")}
-                    className="hover:underline transition cursor-pointer"
-                  >
+                  <button onClick={() => goTo("/signup")} className="hover:underline cursor-pointer">
                     Signup
                   </button>
                 </>
-              )}
-
-              {user && (
-                <button
-                  onClick={handleLogout}
-                  className="hover:underline transition cursor-pointer"
-                >
-                  Logout
-                </button>
               )}
             </div>
 
@@ -97,32 +68,12 @@ const Navbar = () => {
                 className="focus:outline-none z-50 cursor-pointer"
               >
                 {isOpen ? (
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
                   </svg>
                 ) : (
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h16M4 18h16"
-                    />
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16"/>
                   </svg>
                 )}
               </button>
@@ -145,76 +96,35 @@ const Navbar = () => {
           isOpen ? "translate-x-0" : "-translate-x-full"
         } shadow-lg flex flex-col p-6`}
       >
-        <h2
-          className="text-2xl font-bold mb-6 cursor-pointer"
-          onClick={() => {
-            navigate("/");
-            setIsOpen(false);
-          }}
-        >
+        <h2 className="text-2xl font-bold mb-6 cursor-pointer" onClick={() => goTo("/")}>
           📰 NewsApp
         </h2>
 
-        <button
-          onClick={() => {
-            navigate("/news");
-            setIsOpen(false);
-          }}
-          className="mb-3 text-left hover:underline transition cursor-pointer"
-        >
+        <button onClick={() => goTo("/news")} className="mb-3 text-left hover:underline cursor-pointer">
           All News
         </button>
 
-        {user && (
+        {user ? (
           <>
-            <button
-              onClick={handleReporterClick}
-              className="mb-3 text-left hover:underline transition cursor-pointer"
-            >
+            <button onClick={() => goTo("/reporter")} className="mb-3 text-left hover:underline cursor-pointer">
               Reporter Page
             </button>
-            <button
-              onClick={() => {
-                navigate("/profile");
-                setIsOpen(false);
-              }}
-              className="mb-3 text-left hover:underline transition cursor-pointer"
-            >
+            <button onClick={() => goTo("/profile")} className="mb-3 text-left hover:underline cursor-pointer">
               Profile
             </button>
+            <button onClick={handleLogout} className="mb-3 text-left hover:underline cursor-pointer">
+              Logout
+            </button>
           </>
-        )}
-
-        {!user && (
+        ) : (
           <>
-            <button
-              onClick={() => {
-                navigate("/login");
-                setIsOpen(false);
-              }}
-              className="mb-3 text-left hover:underline transition cursor-pointer"
-            >
+            <button onClick={() => goTo("/login")} className="mb-3 text-left hover:underline cursor-pointer">
               Login
             </button>
-            <button
-              onClick={() => {
-                navigate("/signup");
-                setIsOpen(false);
-              }}
-              className="mb-3 text-left hover:underline transition cursor-pointer"
-            >
+            <button onClick={() => goTo("/signup")} className="mb-3 text-left hover:underline cursor-pointer">
               Signup
             </button>
           </>
-        )}
-
-        {user && (
-          <button
-            onClick={handleLogout}
-            className="mb-3 text-left hover:underline transition cursor-pointer"
-          >
-            Logout
-          </button>
         )}
       </div>
     </>
@@ -222,4 +132,5 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
 

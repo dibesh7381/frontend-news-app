@@ -5,11 +5,11 @@ import { useAuth } from "./AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth(); // ✅ login function from context
+  const { login, authLoading } = useAuth();
 
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false); // ✅ naam thoda clear
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -18,10 +18,10 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
+    setSubmitting(true);
 
     try {
-      const res = await fetch(" https://backend-news-app-a6jn.onrender.com/api/auth/login", {
+      const res = await fetch("https://backend-news-app-a6jn.onrender.com/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
@@ -31,23 +31,20 @@ const Login = () => {
 
       if (!res.ok) {
         setError(data.message || "Login failed");
-        setLoading(false);
         return;
       }
 
-      // ✅ Context me user & token update
-      login(data.user, data.token);
-
-      // ✅ Redirect to home page
-      navigate("/");
+      login(data.user, data.token); // ✅ context ka login call
+      navigate("/"); // ✅ redirect
     } catch (err) {
       setError("Something went wrong! " + err.message);
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
-  if (loading) return <Loader />;
+  // ✅ Global auth check + local form submit dono ka loader
+  if (authLoading || submitting) return <Loader />;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 px-4">
@@ -56,9 +53,7 @@ const Login = () => {
           Welcome Back
         </h2>
 
-        {error && (
-          <p className="text-red-500 text-center mb-4 font-medium">{error}</p>
-        )}
+        {error && <p className="text-red-500 text-center mb-4 font-medium">{error}</p>}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Email */}
@@ -76,7 +71,7 @@ const Login = () => {
           </div>
 
           {/* Password */}
-          <div className="relative">
+          <div>
             <label className="block text-gray-700 mb-1 font-medium">Password</label>
             <input
               type="password"

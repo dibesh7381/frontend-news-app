@@ -3,33 +3,34 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import Loader from "../components/Loader";
 
+const API_BASE = "https://backend-news-app-a6jn.onrender.com/api";
+
 const NewsFeed = () => {
-  const { user, token, loading } = useAuth(); 
+  const { user, token, authLoading } = useAuth(); // ✅ renamed according to AuthContext
   const [posts, setPosts] = useState([]);
   const [editingComment, setEditingComment] = useState(null);
   const [editText, setEditText] = useState("");
   const [commentInputs, setCommentInputs] = useState({});
   const navigate = useNavigate();
 
-  // Fetch Posts and sort
+  // ✅ Fetch Posts
   useEffect(() => {
     if (!user || !token) return;
 
     const fetchPosts = async () => {
       try {
-        const res = await fetch(" https://backend-news-app-a6jn.onrender.com/api/posts", {
+        const res = await fetch(`${API_BASE}/posts`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
 
-        // Current reporter ke posts top pe
+        // Current reporter ke posts ko top par rakho
         const sortedPosts = data.sort((a, b) => {
           const aIsCurrent = String(a.author?._id) === String(user._id);
           const bIsCurrent = String(b.author?._id) === String(user._id);
 
           if (aIsCurrent && !bIsCurrent) return -1;
           if (!aIsCurrent && bIsCurrent) return 1;
-
           return new Date(b.createdAt) - new Date(a.createdAt);
         });
 
@@ -42,10 +43,11 @@ const NewsFeed = () => {
     fetchPosts();
   }, [token, user]);
 
-  const handleLike = async (id) => {
+  // ✅ Like / Dislike handlers
+  const handleLikeDislike = async (id, type) => {
     if (user?.role !== "customer") return;
     try {
-      const res = await fetch(` https://backend-news-app-a6jn.onrender.com/api/posts/${id}/like`, {
+      const res = await fetch(`${API_BASE}/posts/${id}/${type}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -56,34 +58,20 @@ const NewsFeed = () => {
         )
       );
     } catch (err) {
-      console.error("Error liking post:", err);
+      console.error(`Error ${type} post:`, err);
     }
   };
 
-  const handleDislike = async (id) => {
-    if (user?.role !== "customer") return;
-    try {
-      const res = await fetch(` https://backend-news-app-a6jn.onrender.com/api/posts/${id}/dislike`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      setPosts((prev) =>
-        prev.map((post) =>
-          post._id === id ? { ...post, likes: data.likes, dislikes: data.dislikes } : post
-        )
-      );
-    } catch (err) {
-      console.error("Error disliking post:", err);
-    }
-  };
-
+  // ✅ Comment Handlers
   const handleComment = async (postId, text) => {
     if (!text.trim()) return;
     try {
-      const res = await fetch(` https://backend-news-app-a6jn.onrender.com/api/posts/${postId}/comments`, {
+      const res = await fetch(`${API_BASE}/posts/${postId}/comments`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ text }),
       });
       const data = await res.json();
@@ -99,14 +87,14 @@ const NewsFeed = () => {
   const handleEditComment = async (postId, commentId) => {
     if (!editText.trim()) return;
     try {
-      const res = await fetch(
-        ` https://backend-news-app-a6jn.onrender.com/api/posts/${postId}/comments/${commentId}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ text: editText }),
-        }
-      );
+      const res = await fetch(`${API_BASE}/posts/${postId}/comments/${commentId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ text: editText }),
+      });
       const data = await res.json();
       setPosts((prev) =>
         prev.map((post) => (post._id === postId ? { ...post, comments: data.comments } : post))
@@ -120,10 +108,10 @@ const NewsFeed = () => {
 
   const handleDeleteComment = async (postId, commentId) => {
     try {
-      const res = await fetch(
-        ` https://backend-news-app-a6jn.onrender.com/api/posts/${postId}/comments/${commentId}`,
-        { method: "DELETE", headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await fetch(`${API_BASE}/posts/${postId}/comments/${commentId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const data = await res.json();
       setPosts((prev) =>
         prev.map((post) => (post._id === postId ? { ...post, comments: data.comments } : post))
@@ -133,8 +121,10 @@ const NewsFeed = () => {
     }
   };
 
-  if (loading) return <Loader />;
+  // ✅ Auth Loading
+  if (authLoading) return <Loader />;
 
+  // ✅ Redirect if not logged in
   if (!user) {
     return (
       <div className="p-6 max-w-md mx-auto bg-white shadow rounded-2xl mt-8 text-center">
@@ -162,17 +152,17 @@ const NewsFeed = () => {
               By Reporter: {post.author?.name || "Unknown"}
             </p>
 
-            {/* Like / Dislike */}
+            {/* ✅ Like / Dislike */}
             {user?.role === "customer" ? (
               <div className="flex gap-4 mt-2">
                 <button
-                  onClick={() => handleLike(post._id)}
+                  onClick={() => handleLikeDislike(post._id, "like")}
                   className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition cursor-pointer"
                 >
                   👍 {post.likes || 0}
                 </button>
                 <button
-                  onClick={() => handleDislike(post._id)}
+                  onClick={() => handleLikeDislike(post._id, "dislike")}
                   className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition cursor-pointer"
                 >
                   👎 {post.dislikes || 0}
@@ -189,17 +179,18 @@ const NewsFeed = () => {
               </div>
             )}
 
-            {/* Comments */}
+            {/* ✅ Comments Section */}
             <div className="mt-3">
               <h3 className="font-semibold">Comments</h3>
               <ul className="pl-4 text-sm text-gray-600">
                 {post.comments?.map((c) => {
-                  const commentOwnerId = String(c.user?._id || c.user?.id || c.user || "");
-                  const currentUserId = String(user?._id || user?.id || "");
-                  const isCommentOwner = commentOwnerId === currentUserId;
+                  const isOwner = String(c.user?._id || c.user) === String(user?._id);
 
                   return (
-                    <li key={c._id} className="border-b py-1 flex justify-between items-center">
+                    <li
+                      key={c._id}
+                      className="border-b py-1 flex justify-between items-center"
+                    >
                       <div>
                         <span className="font-medium">{c.user?.name || "User"}:</span>{" "}
                         {editingComment === c._id ? (
@@ -214,7 +205,7 @@ const NewsFeed = () => {
                         )}
                       </div>
 
-                      {isCommentOwner && (
+                      {isOwner && (
                         <div className="flex gap-2">
                           {editingComment === c._id ? (
                             <>
@@ -225,7 +216,10 @@ const NewsFeed = () => {
                                 Save
                               </button>
                               <button
-                                onClick={() => { setEditingComment(null); setEditText(""); }}
+                                onClick={() => {
+                                  setEditingComment(null);
+                                  setEditText("");
+                                }}
                                 className="text-gray-500 cursor-pointer"
                               >
                                 Cancel
@@ -234,7 +228,10 @@ const NewsFeed = () => {
                           ) : (
                             <>
                               <button
-                                onClick={() => { setEditingComment(c._id); setEditText(c.text); }}
+                                onClick={() => {
+                                  setEditingComment(c._id);
+                                  setEditText(c.text);
+                                }}
                                 className="text-blue-600 cursor-pointer"
                               >
                                 Edit
@@ -254,7 +251,7 @@ const NewsFeed = () => {
                 })}
               </ul>
 
-              {/* Add Comment */}
+              {/* ✅ Add Comment */}
               {user?.role === "customer" && (
                 <div className="flex items-center gap-2 mt-3 border-b border-gray-300 focus-within:border-blue-500">
                   <input
@@ -266,7 +263,8 @@ const NewsFeed = () => {
                     placeholder="Add a comment..."
                     className="flex-1 bg-transparent outline-none py-2 text-sm"
                     onKeyDown={(e) => {
-                      if (e.key === "Enter") handleComment(post._id, commentInputs[post._id] || "");
+                      if (e.key === "Enter")
+                        handleComment(post._id, commentInputs[post._id] || "");
                     }}
                   />
                   <button
@@ -291,6 +289,7 @@ const NewsFeed = () => {
 };
 
 export default NewsFeed;
+
 
 
 

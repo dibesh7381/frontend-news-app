@@ -3,18 +3,18 @@ import Loader from "../components/Loader";
 import { useAuth } from "./AuthContext";
 
 const Profile = () => {
-  const { user, loading } = useAuth(); // ✅ user & loading from context
+  const { user, authLoading } = useAuth(); // ✅ yaha sahi naam se le rahe hain
   const [userData, setUserData] = useState(null);
 
   useEffect(() => {
     if (user) {
-      setUserData(user); // ✅ direct set from context
+      setUserData(user); // ✅ context se user set
     } else {
       setUserData(null);
     }
   }, [user]);
 
-  if (loading) return <Loader />;
+  if (authLoading) return <Loader />; // ✅ yaha bhi same naam use karna hai
 
   return (
     <div>
@@ -53,4 +53,3 @@ const Profile = () => {
 };
 
 export default Profile;
-

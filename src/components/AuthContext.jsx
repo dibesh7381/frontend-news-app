@@ -6,9 +6,8 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true); // ✅ naam seedha authLoading
 
-  // Load user from localStorage on mount
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const storedToken = localStorage.getItem("token");
@@ -20,7 +19,7 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       setToken(null);
     }
-    setLoading(false);
+    setAuthLoading(false); // ✅ clearly batata hai ki auth check khatam
   }, []);
 
   const login = (userData, jwtToken) => {
@@ -38,12 +37,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, token, authLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Custom hook for easy access
+// Custom hook
 // eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);

@@ -6,7 +6,8 @@ import { useAuth } from "./AuthContext";
 
 const ReporterPage = () => {
   const navigate = useNavigate();
-  const { user, token, loading: authLoading } = useAuth();
+  // ✅ Correct destructuring - use same name as in AuthContext
+  const { user, token, authLoading } = useAuth();
 
   const [myPosts, setMyPosts] = useState([]);
   const [form, setForm] = useState({ title: "", description: "" });
@@ -18,7 +19,7 @@ const ReporterPage = () => {
   const [postToDelete, setPostToDelete] = useState(null);
 
   useEffect(() => {
-    if (authLoading) return; // ✅ Wait for context to finish loading
+    if (authLoading) return; // ✅ Wait for auth check
 
     if (!token || !user || user.role !== "reporter") {
       setUnauthorized(true);
@@ -31,7 +32,7 @@ const ReporterPage = () => {
 
   const fetchMyPosts = async () => {
     try {
-      const res = await fetch(" https://backend-news-app-a6jn.onrender.com/api/posts/my-posts", {
+      const res = await fetch("https://backend-news-app-a6jn.onrender.com/api/posts/my-posts", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -43,14 +44,18 @@ const ReporterPage = () => {
     }
   };
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(" https://backend-news-app-a6jn.onrender.com/api/posts", {
+      const res = await fetch("https://backend-news-app-a6jn.onrender.com/api/posts", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(form),
       });
 
@@ -71,7 +76,7 @@ const ReporterPage = () => {
   const handleConfirmDelete = async () => {
     if (!postToDelete) return;
     try {
-      await fetch(` https://backend-news-app-a6jn.onrender.com/api/posts/${postToDelete}`, {
+      await fetch(`https://backend-news-app-a6jn.onrender.com/api/posts/${postToDelete}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -94,13 +99,12 @@ const ReporterPage = () => {
     setEditForm({ title: post.title, description: post.description });
   };
 
-  const handleEditChange = (e) => {
+  const handleEditChange = (e) =>
     setEditForm({ ...editForm, [e.target.name]: e.target.value });
-  };
 
   const handleEditSubmit = async (id) => {
     try {
-      const res = await fetch(` https://backend-news-app-a6jn.onrender.com/api/posts/${id}`, {
+      const res = await fetch(`https://backend-news-app-a6jn.onrender.com/api/posts/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -141,7 +145,6 @@ const ReporterPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white flex flex-col">
-
       {/* ✅ Confirm Modal */}
       <ConfirmModal
         isOpen={confirmOpen}
@@ -255,5 +258,3 @@ const ReporterPage = () => {
 };
 
 export default ReporterPage;
-
-
