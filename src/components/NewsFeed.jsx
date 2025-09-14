@@ -17,7 +17,7 @@ const NewsFeed = () => {
 
     const fetchPosts = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/posts", {
+        const res = await fetch(" https://backend-news-app-a6jn.onrender.com/api/posts", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -45,7 +45,7 @@ const NewsFeed = () => {
   const handleLike = async (id) => {
     if (user?.role !== "customer") return;
     try {
-      const res = await fetch(`http://localhost:5000/api/posts/${id}/like`, {
+      const res = await fetch(` https://backend-news-app-a6jn.onrender.com/api/posts/${id}/like`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -63,7 +63,7 @@ const NewsFeed = () => {
   const handleDislike = async (id) => {
     if (user?.role !== "customer") return;
     try {
-      const res = await fetch(`http://localhost:5000/api/posts/${id}/dislike`, {
+      const res = await fetch(` https://backend-news-app-a6jn.onrender.com/api/posts/${id}/dislike`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -81,7 +81,7 @@ const NewsFeed = () => {
   const handleComment = async (postId, text) => {
     if (!text.trim()) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/posts/${postId}/comments`, {
+      const res = await fetch(` https://backend-news-app-a6jn.onrender.com/api/posts/${postId}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ text }),
@@ -100,7 +100,7 @@ const NewsFeed = () => {
     if (!editText.trim()) return;
     try {
       const res = await fetch(
-        `http://localhost:5000/api/posts/${postId}/comments/${commentId}`,
+        ` https://backend-news-app-a6jn.onrender.com/api/posts/${postId}/comments/${commentId}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -121,7 +121,7 @@ const NewsFeed = () => {
   const handleDeleteComment = async (postId, commentId) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/posts/${postId}/comments/${commentId}`,
+        ` https://backend-news-app-a6jn.onrender.com/api/posts/${postId}/comments/${commentId}`,
         { method: "DELETE", headers: { Authorization: `Bearer ${token}` } }
       );
       const data = await res.json();

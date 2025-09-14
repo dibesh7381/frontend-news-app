@@ -31,7 +31,7 @@ const ReporterPage = () => {
 
   const fetchMyPosts = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/posts/my-posts", {
+      const res = await fetch(" https://backend-news-app-a6jn.onrender.com/api/posts/my-posts", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -48,7 +48,7 @@ const ReporterPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:5000/api/posts", {
+      const res = await fetch(" https://backend-news-app-a6jn.onrender.com/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(form),
@@ -71,7 +71,7 @@ const ReporterPage = () => {
   const handleConfirmDelete = async () => {
     if (!postToDelete) return;
     try {
-      await fetch(`http://localhost:5000/api/posts/${postToDelete}`, {
+      await fetch(` https://backend-news-app-a6jn.onrender.com/api/posts/${postToDelete}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -100,7 +100,7 @@ const ReporterPage = () => {
 
   const handleEditSubmit = async (id) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/posts/${id}`, {
+      const res = await fetch(` https://backend-news-app-a6jn.onrender.com/api/posts/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
