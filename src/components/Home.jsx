@@ -1,54 +1,16 @@
-import { useEffect, useState } from "react";
+
 import { useNavigate } from "react-router-dom";
 import Loader from "./Loader";
 import { useAuth } from "./AuthContext";
 
 function Home() {
-  const { token } = useAuth(); // token backend fetch ke liye
-  const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { user, token, authLoading } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (!token) {
-      setLoading(false);
-      return;
-    }
+  // Agar loading chal rahi hai (auth check)
+  if (authLoading) return <Loader />;
 
-    const fetchUser = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(
-          "https://backend-news-app-a6jn.onrender.com/api/users/home",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
-        if (!res.ok) {
-          const errData = await res.json();
-          throw new Error(errData.message || "Failed to fetch user info");
-        }
-
-        const data = await res.json();
-        setUserData(data);
-        setError("");
-      } catch (err) {
-        console.error("Error fetching user:", err.message);
-        setError(err.message);
-        setUserData(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUser();
-  }, [token]);
-
-  if (loading) return <Loader />;
-
-  // agar login nahi hai
+  // Agar login nahi hai
   if (!token) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -66,20 +28,7 @@ function Home() {
     );
   }
 
-  // agar fetch me error aaya
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="bg-white p-6 rounded-xl shadow-md text-center">
-          <h2 className="text-xl font-bold mb-4 text-red-600">Error</h2>
-          <p>{error}</p>
-        </div>
-      </div>
-    );
-  }
-
-  // safe rendering: optional chaining aur null check
-  const role = userData?.role;
+  const role = user?.role;
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -110,6 +59,7 @@ function Home() {
 }
 
 export default Home;
+
 
 
 

@@ -1,10 +1,12 @@
+
+// src/pages/Profile.jsx
 import { useEffect, useState } from "react";
 import Loader from "../components/Loader";
 import { useAuth } from "./AuthContext";
 import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
-  const { token } = useAuth(); // user se ab direct backend fetch karenge
+  const { token } = useAuth(); 
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -20,7 +22,7 @@ const Profile = () => {
       try {
         setLoading(true);
         const res = await fetch(
-          `https://backend-news-app-a6jn.onrender.com/api/users/profile`,
+          "https://backend-news-app-a6jn.onrender.com/api/users/profile",
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -54,7 +56,7 @@ const Profile = () => {
         <h2 className="text-xl font-bold mb-4">You are not logged in</h2>
         <button
           onClick={() => navigate("/login")}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg"
         >
           Login Now
         </button>
@@ -86,10 +88,12 @@ const Profile = () => {
           <p>
             <span className="font-semibold">Role:</span>{" "}
             <span
-              className={`px-2 py-1 rounded ${
+              className={`font-medium ${
                 userData.role === "reporter"
-                  ? "bg-blue-200 text-blue-800"
-                  : "bg-green-200 text-green-800"
+                  ? "text-blue-600"
+                  : userData.role === "customer"
+                  ? "text-green-600"
+                  : "text-gray-600"
               }`}
             >
               {userData.role}
@@ -97,9 +101,7 @@ const Profile = () => {
           </p>
         </div>
       ) : (
-        <p className="text-center text-gray-500">
-          No profile data found.
-        </p>
+        <p className="text-center text-gray-500">No profile data found.</p>
       )}
     </div>
   );

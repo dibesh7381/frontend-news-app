@@ -9,11 +9,9 @@ const Login = () => {
 
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false); // ✅ naam thoda clear
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,8 +32,8 @@ const Login = () => {
         return;
       }
 
-      login(data.user, data.token); // ✅ context ka login call
-      navigate("/"); // ✅ redirect
+      login(data.token); // ✅ sirf token bhejna hai
+      navigate("/");
     } catch (err) {
       setError("Something went wrong! " + err.message);
     } finally {
@@ -43,7 +41,6 @@ const Login = () => {
     }
   };
 
-  // ✅ Global auth check + local form submit dono ka loader
   if (authLoading || submitting) return <Loader />;
 
   return (
@@ -56,7 +53,6 @@ const Login = () => {
         {error && <p className="text-red-500 text-center mb-4 font-medium">{error}</p>}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Email */}
           <div>
             <label className="block text-gray-700 mb-1 font-medium">Email</label>
             <input
@@ -70,7 +66,6 @@ const Login = () => {
             />
           </div>
 
-          {/* Password */}
           <div>
             <label className="block text-gray-700 mb-1 font-medium">Password</label>
             <input
@@ -84,7 +79,6 @@ const Login = () => {
             />
           </div>
 
-          {/* Submit */}
           <button
             type="submit"
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition cursor-pointer"

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import Loader from "./Loader";
+import ConfirmModal from "./ConfirmModal";
 
 const API_BASE = "https://backend-news-app-a6jn.onrender.com/api";
 
@@ -12,6 +13,11 @@ const NewsFeed = () => {
   const [editingComment, setEditingComment] = useState(null);
   const [editText, setEditText] = useState("");
   const [commentInputs, setCommentInputs] = useState({});
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    postId: null,
+    commentId: null,
+  });
   const navigate = useNavigate();
 
   // Fetch posts
@@ -113,9 +119,8 @@ const NewsFeed = () => {
   };
 
   // Delete Comment
-  const handleDeleteComment = async (postId, commentId) => {
-    if (!window.confirm("Are you sure you want to delete this comment?"))
-      return;
+  const handleDeleteComment = async () => {
+    const { postId, commentId } = confirmModal;
     try {
       const res = await fetch(
         `${API_BASE}/posts/${postId}/comments/${commentId}`,
@@ -128,12 +133,13 @@ const NewsFeed = () => {
       updatePostComments(postId, data.comments);
     } catch (err) {
       console.error("Error deleting comment:", err);
+    } finally {
+      setConfirmModal({ isOpen: false, postId: null, commentId: null });
     }
   };
 
   if (loading) return <Loader />;
 
-  // ❌ Not logged in
   if (!user) {
     return (
       <div className="p-6 max-w-md mx-auto bg-white shadow rounded-2xl mt-8 text-center">
@@ -148,7 +154,6 @@ const NewsFeed = () => {
     );
   }
 
-  // ❌ No posts
   if (posts.length === 0) {
     return (
       <div className="p-6 max-w-md mx-auto bg-white shadow rounded-2xl mt-8 text-center">
@@ -159,180 +164,197 @@ const NewsFeed = () => {
   }
 
   return (
-    <div className="p-6 grid gap-4">
-      {posts.map((post) => (
-        <div
-          key={post._id}
-          className="border p-4 rounded shadow flex flex-col gap-2 transition-all duration-300"
-        >
-          <h2 className="text-xl font-bold">{post.title}</h2>
-          <p className="text-gray-700">{post.description}</p>
-          <p className="text-xs text-gray-500">
-            By Reporter: {post.author?.name || "Unknown"}
-          </p>
+    <>
+      <div className="p-6 grid gap-4">
+        {posts.map((post) => (
+          <div
+            key={post._id}
+            className="border p-4 rounded shadow flex flex-col gap-2 transition-all duration-300"
+          >
+            <h2 className="text-xl font-bold">{post.title}</h2>
+            <p className="text-gray-700">{post.description}</p>
+            <p className="text-xs text-gray-500">
+              By Reporter: {post.author?.name || "Unknown"}
+            </p>
 
-          {/* Like / Dislike */}
-          <div className="flex gap-2 mt-2">
-            {["like", "dislike"].map((type) => (
-              <button
-                key={type}
-                onClick={() => handleLikeDislike(post._id, type)}
-                className={`px-3 py-1 rounded text-white cursor-pointer ${
-                  type === "like"
-                    ? "bg-green-500 hover:bg-green-600"
-                    : "bg-red-500 hover:bg-red-600"
+            {/* Like / Dislike */}
+            <div className="flex gap-2 mt-2">
+              {["like", "dislike"].map((type) => (
+                <button
+                  key={type}
+                  onClick={() => handleLikeDislike(post._id, type)}
+                  className={`px-3 py-1 rounded text-white cursor-pointer ${
+                    type === "like"
+                      ? "bg-green-500 hover:bg-green-600"
+                      : "bg-red-500 hover:bg-red-600"
+                  }`}
+                >
+                  {type === "like" ? "👍" : "👎"}{" "}
+                  {post[type === "like" ? "likes" : "dislikes"] || 0}
+                </button>
+              ))}
+            </div>
+
+            {/* Comments Section */}
+            <div className="mt-3">
+              <h3
+                className="font-semibold cursor-pointer select-none"
+                onClick={() =>
+                  setPosts((prev) =>
+                    prev.map((p) =>
+                      p._id === post._id
+                        ? { ...p, openComments: !p.openComments }
+                        : p
+                    )
+                  )
+                }
+              >
+                Comments ({post.comments?.length || 0}){" "}
+                <span className="text-gray-400">
+                  {post.openComments ? "▲" : "▼"}
+                </span>
+              </h3>
+
+              <div
+                className={`overflow-hidden transition-all duration-300 ${
+                  post.openComments ? "max-h-[1000px] mt-2" : "max-h-0"
                 }`}
               >
-                {type === "like" ? "👍" : "👎"}{" "}
-                {post[type === "like" ? "likes" : "dislikes"] || 0}
-              </button>
-            ))}
-          </div>
+                <ul className="pl-4 text-sm text-gray-600">
+                  {post.comments?.map((c) => {
+                    const commentUserId =
+                      typeof c.user === "object"
+                        ? c.user._id?.toString()
+                        : c.user?.toString();
+                    const currentUserId =
+                      user?._id?.toString() || user?.id?.toString();
+                    const isOwner = currentUserId === commentUserId;
 
-          {/* Comments Section */}
-          <div className="mt-3">
-            <h3
-              className="font-semibold cursor-pointer select-none"
-              onClick={() =>
-                setPosts((prev) =>
-                  prev.map((p) =>
-                    p._id === post._id
-                      ? { ...p, openComments: !p.openComments }
-                      : p
-                  )
-                )
-              }
-            >
-              Comments ({post.comments?.length || 0}){" "}
-              <span className="text-gray-400">
-                {post.openComments ? "▲" : "▼"}
-              </span>
-            </h3>
-
-            <div
-              className={`overflow-hidden transition-all duration-300 ${
-                post.openComments ? "max-h-[1000px] mt-2" : "max-h-0"
-              }`}
-            >
-              <ul className="pl-4 text-sm text-gray-600">
-                {post.comments?.map((c) => {
-                  const commentUserId =
-                    typeof c.user === "object"
-                      ? c.user._id?.toString()
-                      : c.user?.toString();
-                  const currentUserId =
-                    user?._id?.toString() || user?.id?.toString();
-                  const isOwner = currentUserId === commentUserId;
-
-                  return (
-                    <li
-                      key={c._id}
-                      className="border-b py-1 flex justify-between items-center"
-                    >
-                      <div className="flex-1">
-                        <span className="font-medium">
-                          {typeof c.user === "object" ? c.user.name : "User"}:
-                        </span>{" "}
-                        {editingComment === c._id ? (
-                          <input
-                            value={editText}
-                            onChange={(e) => setEditText(e.target.value)}
-                            autoFocus
-                            className="border-b border-gray-400 focus:border-blue-500 outline-none ml-2 w-full"
-                          />
-                        ) : (
-                          c.text
-                        )}
-                      </div>
-
-                      {isOwner && (
-                        <div className="flex gap-2 ml-2">
+                    return (
+                      <li
+                        key={c._id}
+                        className="border-b py-1 flex justify-between items-center"
+                      >
+                        <div className="flex-1">
+                          <span className="font-medium">
+                            {typeof c.user === "object" ? c.user.name : "User"}:
+                          </span>{" "}
                           {editingComment === c._id ? (
-                            <>
-                              <button
-                                onClick={() =>
-                                  handleEditComment(post._id, c._id)
-                                }
-                                className="text-green-600 font-medium"
-                              >
-                                Save
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setEditingComment(null);
-                                  setEditText("");
-                                }}
-                                className="text-gray-500"
-                              >
-                                Cancel
-                              </button>
-                            </>
+                            <input
+                              value={editText}
+                              onChange={(e) => setEditText(e.target.value)}
+                              autoFocus
+                              className="border-b border-gray-400 focus:border-blue-500 outline-none ml-2 w-full"
+                            />
                           ) : (
-                            <>
-                              <button
-                                onClick={() => {
-                                  setEditingComment(c._id);
-                                  setEditText(c.text);
-                                }}
-                                className="text-blue-600 hover:underline"
-                              >
-                                Edit
-                              </button>
-                              <button
-                                onClick={() =>
-                                  handleDeleteComment(post._id, c._id)
-                                }
-                                className="text-red-600 hover:underline"
-                              >
-                                Delete
-                              </button>
-                            </>
+                            c.text
                           )}
                         </div>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
 
-              {/* Add Comment */}
-              {user?.role === "customer" && (
-                <div className="flex items-center gap-2 mt-3 border-b border-gray-300 focus-within:border-blue-500">
-                  <input
-                    value={commentInputs[post._id] || ""}
-                    onChange={(e) =>
-                      setCommentInputs((prev) => ({
-                        ...prev,
-                        [post._id]: e.target.value,
-                      }))
-                    }
-                    placeholder="Add a comment..."
-                    className="flex-1 bg-transparent outline-none py-2 text-sm"
-                    onKeyDown={(e) =>
-                      e.key === "Enter" &&
-                      handleAddComment(post._id, commentInputs[post._id] || "")
-                    }
-                  />
-                  <button
-                    onClick={() =>
-                      handleAddComment(post._id, commentInputs[post._id] || "")
-                    }
-                    disabled={!commentInputs[post._id]?.trim()}
-                    className={`text-sm font-medium ${
-                      commentInputs[post._id]?.trim()
-                        ? "text-blue-500 hover:text-blue-600 cursor-pointer"
-                        : "text-gray-400 cursor-not-allowed"
-                    }`}
-                  >
-                    Post
-                  </button>
-                </div>
-              )}
+                        {isOwner && (
+                          <div className="flex gap-2 ml-2">
+                            {editingComment === c._id ? (
+                              <>
+                                <button
+                                  onClick={() =>
+                                    handleEditComment(post._id, c._id)
+                                  }
+                                  className="text-green-600 font-medium"
+                                >
+                                  Save
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setEditingComment(null);
+                                    setEditText("");
+                                  }}
+                                  className="text-gray-500"
+                                >
+                                  Cancel
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    setConfirmModal({
+                                      isOpen: true,
+                                      postId: post._id,
+                                      commentId: c._id,
+                                    });
+                                  }}
+                                  className="text-red-600 hover:underline"
+                                >
+                                  Delete
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setEditingComment(c._id);
+                                    setEditText(c.text);
+                                  }}
+                                  className="text-blue-600 hover:underline"
+                                >
+                                  Edit
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+
+                {/* Add Comment */}
+                {user?.role === "customer" && (
+                  <div className="flex items-center gap-2 mt-3 border-b border-gray-300 focus-within:border-blue-500">
+                    <input
+                      value={commentInputs[post._id] || ""}
+                      onChange={(e) =>
+                        setCommentInputs((prev) => ({
+                          ...prev,
+                          [post._id]: e.target.value,
+                        }))
+                      }
+                      placeholder="Add a comment..."
+                      className="flex-1 bg-transparent outline-none py-2 text-sm"
+                      onKeyDown={(e) =>
+                        e.key === "Enter" &&
+                        handleAddComment(
+                          post._id,
+                          commentInputs[post._id] || ""
+                        )
+                      }
+                    />
+                    <button
+                      onClick={() =>
+                        handleAddComment(post._id, commentInputs[post._id] || "")
+                      }
+                      disabled={!commentInputs[post._id]?.trim()}
+                      className={`text-sm font-medium ${
+                        commentInputs[post._id]?.trim()
+                          ? "text-blue-500 hover:text-blue-600 cursor-pointer"
+                          : "text-gray-400 cursor-not-allowed"
+                      }`}
+                    >
+                      Post
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        message="Are you sure you want to delete this comment?"
+        onConfirm={handleDeleteComment}
+        onCancel={() => setConfirmModal({ isOpen: false, postId: null, commentId: null })}
+      />
+    </>
   );
 };
 
