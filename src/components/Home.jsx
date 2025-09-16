@@ -1,16 +1,53 @@
 
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Loader from "./Loader";
 import { useAuth } from "./AuthContext";
 
+const API_BASE = "https://backend-news-app-a6jn.onrender.com/api";
+
 function Home() {
-  const { user, token, authLoading } = useAuth();
+  const { token } = useAuth();
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // Agar loading chal rahi hai (auth check)
-  if (authLoading) return <Loader />;
+  useEffect(() => {
+    if (!token) {
+      setLoading(false);
+      return;
+    }
 
-  // Agar login nahi hai
+    const fetchUser = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`${API_BASE}/users/home`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.message || "Failed to fetch user");
+        }
+
+        const data = await res.json();
+        setUserData(data);
+        setError("");
+      } catch (err) {
+        console.error("Error fetching user:", err.message);
+        setUserData(null);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, [token]);
+
+  if (loading) return <Loader />;
+
   if (!token) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -28,7 +65,18 @@ function Home() {
     );
   }
 
-  const role = user?.role;
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="bg-white p-6 rounded-xl shadow-md text-center">
+          <h2 className="text-2xl font-bold mb-2 text-red-600">Error</h2>
+          <p className="text-gray-600">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const role = userData?.role;
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -59,7 +107,4 @@ function Home() {
 }
 
 export default Home;
-
-
-
 
