@@ -4,8 +4,6 @@ import { useNavigate } from "react-router-dom";
 import Loader from "./Loader";
 import { useAuth } from "./AuthContext";
 
-const API_BASE = "https://backend-news-app-a6jn.onrender.com/api";
-
 function Home() {
   const { token } = useAuth();
   const [userData, setUserData] = useState(null);
@@ -22,7 +20,7 @@ function Home() {
     const fetchUser = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_BASE}/users/home`, {
+        const res = await fetch(`https://backend-news-app-a6jn.onrender.com/api/users/home`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

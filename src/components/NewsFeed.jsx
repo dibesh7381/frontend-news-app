@@ -4,7 +4,6 @@ import { useAuth } from "./AuthContext";
 import Loader from "./Loader";
 import ConfirmModal from "./ConfirmModal";
 
-const API_BASE = "https://backend-news-app-a6jn.onrender.com/api";
 
 const NewsFeed = () => {
   const { user, token } = useAuth();
@@ -31,7 +30,7 @@ const NewsFeed = () => {
     const fetchPosts = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_BASE}/posts`, {
+        const res = await fetch(`https://backend-news-app-a6jn.onrender.com/api/posts`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -57,7 +56,7 @@ const NewsFeed = () => {
   const handleLikeDislike = async (id, type) => {
     if (user?.role !== "customer") return;
     try {
-      const res = await fetch(`${API_BASE}/posts/${id}/${type}`, {
+      const res = await fetch(`https://backend-news-app-a6jn.onrender.com/api/posts/${id}/${type}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -78,7 +77,7 @@ const NewsFeed = () => {
   const handleAddComment = async (postId, text) => {
     if (!text.trim()) return;
     try {
-      const res = await fetch(`${API_BASE}/posts/${postId}/comments`, {
+      const res = await fetch(`https://backend-news-app-a6jn.onrender.com/api/posts/${postId}/comments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -99,7 +98,7 @@ const NewsFeed = () => {
     if (!editText.trim()) return;
     try {
       const res = await fetch(
-        `${API_BASE}/posts/${postId}/comments/${commentId}`,
+        `https://backend-news-app-a6jn.onrender.com/api/posts/${postId}/comments/${commentId}`,
         {
           method: "PUT",
           headers: {
@@ -123,7 +122,7 @@ const NewsFeed = () => {
     const { postId, commentId } = confirmModal;
     try {
       const res = await fetch(
-        `${API_BASE}/posts/${postId}/comments/${commentId}`,
+        `https://backend-news-app-a6jn.onrender.com/api/posts/${postId}/comments/${commentId}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
